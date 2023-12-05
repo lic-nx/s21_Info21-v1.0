@@ -181,7 +181,7 @@ In this example, the only "out" is the record with an ID equal to 2. Peer with t
 
 ## Part 1. Creating a database
 
-Write a *part1.sql* script that creates the database and all the tables described above.
+Write a *part1.sql* script that creates the database and all the tables described above. You can use a ready-made dataset available [here](https://disk.yandex.ru/d/aD9ynYOYvhs6Ig).
 
 Also, add procedures to the script that allow you to import and export data for each table from/to a file with a *.csv* extension. \
 The *csv* file separator is specified as a parameter of each procedure.
