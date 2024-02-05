@@ -58,9 +58,11 @@ END IF;
 END;
 $$;
 
-CALL add_verter_check('alice', 'A8_s21_memory', 'Failure', '10:00');
-CALL add_verter_check('alice', 'A8_s21_memory', 'Success', '10:00');
-CALL add_verter_check('mike', 'A8_s21_memory', 'Success', '11:00');
+CALL add_verter_check('gflglwhwjn', 'C7', 'Start', '14:00');
+CALL add_verter_check('iodskxuoka', 'C2', 'Start', '11:00');
+CALL add_verter_check('iodskxuoka', 'C5', 'Start', '12:00');
+CALL add_verter_check('yculbhvhbj', 'C1', 'Start', '10:00');
+CALL add_verter_check('llxfrdpypf', 'C6', 'Start', '13:00');
 
 --3)тригеры после добавления записи со статутом "начало" в таблицу P2P,
     -- изменить соответствующую запись в таблице TransferredPoints
