@@ -1,11 +1,3 @@
--- В ЭКСПОРТ И В ИМПОРТ ПРОЦЕДУРАХ ВЫХОДИТ ОШИБКА "permission denied" - "нет доступа/разрешения".
--- Нужно указать абсолютный путь, то есть /Users/a1/Desktop/checks.csv или типо того. 
--- Есть подозрения, что они просто не видят файл, НО путь указываю правильно:((
-
--- Шаблон: FOREIGN KEY поле_текущей_таблицы REFERENCES название_другой_таблицы(поле_из_той_самой_другой_таблицы)
--- Дает возможность связать поле из одной таблицы с полем другой таблицы, чтобы между ними не было противоречивых данных
--- Пример в связи между таблицами Tasks и Checks
-
 CREATE TYPE check_status AS ENUM ('Start', 'Success', 'Failure'); -- тип данных enum / перечисление работает как в СИ
 -- используется в таблицах P2P и Verter
 
@@ -89,91 +81,58 @@ CREATE TABLE IF NOT EXISTS TimeTracking (
     FOREIGN KEY (Peer) REFERENCES Peers(Nickname)
 );
 
-INSERT INTO Peers VALUES  
-('john', '2000-01-01'),
-('bob', '2001-01-01'),
-('alice', '2002-01-01'), 
-('mike', '2003-01-01'),
-('kate', '2004-01-01');
+CREATE OR REPLACE PROCEDURE csv_import(
+    p_table_name TEXT,
+    p_filename TEXT,
+    p_delimiter CHAR
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    EXECUTE format(
+        'COPY %I FROM %L WITH CSV HEADER DELIMITER %L',
+        p_table_name,
+        p_filename,
+        p_delimiter
+    );
+END; 
+$$;
 
-INSERT INTO Tasks VALUES
-('A5_s21_memory', null, 500), 
-('A6_s21_memory', null, 400),
-('A7_s21_memory', 'A5_s21_memory', 250),  
-('A8_s21_memory', 'A6_s21_memory', 300),
-('A9_s21_memory', null, 1000);
+CREATE OR REPLACE PROCEDURE csv_export(
+    p_table_name TEXT, 
+    p_filename TEXT,
+    p_delimiter CHAR DEFAULT ','
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    EXECUTE format(
+        'COPY %I TO %L WITH CSV HEADER DELIMITER %L', 
+        p_table_name,
+        p_filename,
+        p_delimiter
+    );
+END;  
+$$;
 
-INSERT INTO Checks VALUES
-(1, 'john', 'A5_s21_memory', '2020-03-01'),
-(2, 'bob', 'A6_s21_memory', '2020-04-01'),
-(3, 'alice', 'A7_s21_memory', '2020-05-01'),
-(4, 'mike', 'A8_s21_memory', '2020-06-01'), 
-(5, 'kate', 'A9_s21_memory', '2020-07-01');
+INSERT INTO tasks VALUES ('None', null, 0);
+CALL csv_import('peers', 'C:\SteamLibrary\peers.csv', ';');
+CALL csv_import('friends', 'C:\SteamLibrary\friends.csv', ';');
+CALL csv_import('recommendations', 'C:\SteamLibrary\recommendations.csv', ';');
+CALL csv_import('timetracking', 'C:\SteamLibrary\time_tracking.csv', ';');
+CALL csv_import('transferredpoints', 'C:\SteamLibrary\transferred_points.csv', ';');
+CALL csv_import('tasks', 'C:\SteamLibrary\tasks.csv', ';');
+CALL csv_import('checks', 'C:\SteamLibrary\checks.csv', ';');
+CALL csv_import('xp', 'C:\SteamLibrary\XP.csv', ';');
+CALL csv_import('p2p', 'C:\SteamLibrary\P2P.csv', ';');
+CALL csv_import('verter', 'C:\SteamLibrary\verter.csv', ';');
 
-INSERT INTO P2P VALUES  
-(1, 1, 'bob', 'Success', '12:00'), 
-(2, 2, 'alice', 'Failure', '13:00'),
-(3, 3, 'mike', 'Start', '14:00'),
-(4, 4, 'kate', 'Success', '15:00'),
-(5, 5, 'john', 'Start', '16:00'); 
+CALL csv_export('peers', 'C:\SteamLibrary\peers1.csv', ';');
+CALL csv_export('friends', 'C:\SteamLibrary\friends1.csv', ';');
+CALL csv_export('recommendations', 'C:\SteamLibrary\recommendations1.csv', ';');
+CALL csv_export('timetracking', 'C:\SteamLibrary\time_tracking1.csv', ';');
+CALL csv_export('transferredpoints', 'C:\SteamLibrary\transferred_points1.csv', ';');
+CALL csv_export('tasks', 'C:\SteamLibrary\tasks1.csv', ';');
+CALL csv_export('checks', 'C:\SteamLibrary\checks1.csv', ';');
+CALL csv_export('xp', 'C:\SteamLibrary\XP1.csv', ';');
+CALL csv_export('p2p', 'C:\SteamLibrary\P2P1.csv', ';');
+CALL csv_export('verter', 'C:\SteamLibrary\verter1.csv', ';');
 
-INSERT INTO Verter VALUES
-(1, 1, 'Success', '12:05'),
-(2, 2, 'Success', '13:05'), 
-(3, 3, 'Failure', '14:05'),
-(4, 4, 'Success', '15:05'),
-(5, 5, 'Start', '16:05');
-
-INSERT INTO Friends VALUES  
-(1, 'john', 'bob'),
-(2, 'alice', 'mike'), 
-(3, 'bob', 'kate'),
-(4, 'mike', 'john'),  
-(5, 'kate', 'alice');
-
-INSERT INTO Recommendations VALUES
-(1, 'john', 'alice'),  
-(2, 'bob', 'mike'),
-(3, 'alice', 'kate'),
-(4, 'mike', 'john'), 
-(5, 'kate', 'bob');
-
-INSERT INTO XP VALUES  
-(1, 1, 250),
-(2, 2, 100),  
-(3, 3, 125),
-(4, 4, 300),  
-(5, 5, 500);
-
-INSERT INTO TimeTracking VALUES
-(1, 'john', '2022-01-01', '12:00', 1),  
-(2, 'bob', '2022-02-01', '13:00', 1),
-(3, 'alice', '2022-03-01', '14:00', 2), 
-(4, 'mike', '2022-04-01', '15:00', 1),
-(5, 'kate', '2022-05-01', '16:00', 2);
-
--- CREATE OR REPLACE PROCEDURE import_csv(p_table text, p_csv_file text) 
--- LANGUAGE plpgsql AS $$
--- BEGIN
---   EXECUTE format('
---     COPY %I FROM %L
---     WITH CSV HEADER
---     ', p_table, p_csv_file);
--- END;
--- $$;
-
--- CALL import_csv('checks', '/Users/a1/Desktop/checks.csv');
-
--- CREATE OR REPLACE PROCEDURE export_csv(p_table text, p_csv_file text)
--- LANGUAGE plpgsql AS $$
--- BEGIN
---   EXECUTE format('
---     COPY %I TO %L
---     WITH CSV HEADER
---     ', p_table, p_csv_file);
--- END;
--- $$;
-
--- CALL export_csv('mytable', '/Users/a1/Desktop/data.csv');
-
--- drop table universal_mailing
