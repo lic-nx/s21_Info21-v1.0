@@ -139,7 +139,6 @@ SELECT * from maxTask();
 -- Результат вывести отсортированным по дате завершения. 
 -- Формат вывода: ник пира, дата завершения блока (т.е. последнего выполненного задания из этого блока)
 
-
 CREATE OR replace FUNCTION ALL_Block_done(block_name text)
 returns TABLE ("peer" character varying, "date" Date) 
  as $$
