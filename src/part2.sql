@@ -29,11 +29,11 @@ END IF;
 END;
 $$;
 
-CALL add_p2p_check('alice', 'mike', 'A8_s21_memory', 'Start', '10:00');
-CALL add_p2p_check('alice', 'mike', 'A8_s21_memory', 'Failure', '10:00');
-
-CALL add_p2p_check('alice', 'bob', 'A8_s21_memory', 'Start', '10:00');
-CALL add_p2p_check('alice', 'bob', 'A8_s21_memory', 'Success', '10:00');
+CALL add_p2p_check('yculbhvhbj', 'iodskxuoka', 'C1', 'Start', '10:00');
+CALL add_p2p_check('iodskxuoka', 'sdgkxkjwmk', 'C2', 'Start', '11:00');
+CALL add_p2p_check('iodskxuoka', 'uyaqyslbhk', 'C5', 'Start', '12:00');
+CALL add_p2p_check('llxfrdpypf', 'hsygfqpicc', 'C6', 'Start', '13:00');
+CALL add_p2p_check('gflglwhwjn', 'hzwxhpqfbb', 'C7', 'Start', '14:00');
 
 -- 2) процедура проверки вектором
 
@@ -90,6 +90,12 @@ AFTER INSERT ON P2P
 FOR EACH ROW
 EXECUTE FUNCTION update_transferredPoints();
 
+CALL add_p2p_check('mvazvelhwy', 'iosfiypdje', 'C1', 'Start', '10:00');
+CALL add_p2p_check('mvazvelhwy', 'wbbmjueeye', 'C2', 'Start', '11:00');
+CALL add_p2p_check('wsiwgwornx', 'iosfiypdje', 'C5', 'Start', '12:00');
+CALL add_p2p_check('wsiwgwornx', 'prbedzugjq', 'C6', 'Start', '13:00');
+CALL add_p2p_check('wsiwgwornx', 'xshctjmsxa', 'C7', 'Start', '14:00');
+
 -- 4)
 CREATE OR REPLACE TRIGGER update_transferredPoints_trigger AFTER INSERT ON p2p
     FOR EACH ROW EXECUTE FUNCTION
@@ -132,8 +138,11 @@ CREATE OR REPLACE TRIGGER check_new_row_trigger BEFORE INSERT ON xp FOR EACH ROW
     EXECUTE FUNCTION
     check_new_row();
 
-INSERT INTO xp VALUES(9, 4, 300);
-INSERT INTO xp values(6, 5, 200); -- ошибка так как нет статуса success
+INSERT INTO xp VALUES((SELECT MAX(id) FROM XP)+1, 1, 50);
+INSERT INTO xp VALUES((SELECT MAX(id) FROM XP)+1, 2, 50);
+INSERT INTO xp VALUES((SELECT MAX(id) FROM XP)+1, 3, 50);
+INSERT INTO xp VALUES((SELECT MAX(id) FROM XP)+1, 6, 0);
+INSERT INTO xp VALUES((SELECT MAX(id) FROM XP)+1, 8, 50);
 
 -- drop PROCEDURE add_verter_check;
 --drop PROCEDURE public.add_p2p_check;
