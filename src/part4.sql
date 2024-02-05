@@ -249,5 +249,5 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CALL proc_search_proc_string('delete', );
+CALL proc_search_proc_string('delete');
 FETCH ALL FROM "ref";
