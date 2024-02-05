@@ -165,20 +165,17 @@ returns table ("peer" varchar, "recommendedPeer" varchar) as
 $$
 begin
     return query
-    with recommendationcount as (
-        select
-            peer1, recommendations.recommendedpeer,
-            count(*) as recommendationcount,
-            row_number() over (partition by peer1 order by count(*) desc) as row
-        from friends
-        join recommendations on friends.peer2 = recommendations.peer
-        group by peer1, recommendations.recommendedpeer
+     with recommendationcount as (
+           SELECT p1.Peer1, p2.Peer2, COUNT(*) AS RecommendationCount
+		    FROM friends p1
+		    JOIN friends p2 ON p1.Peer2 = p2.Peer1
+		    GROUP BY p1.Peer1, p2.Peer2
     )
-    select peer1, recommendedpeer from recommendationcount where row = 1;
+    select p1.peer1, p1.Peer2 from recommendationcount
+                         JOIN friends p1 ON recommendationcount.Peer1 = p1.Peer1;
 end;
 $$ language plpgsql;
-    
-
+    -- проверить на болшем числе данных
 SELECT * from recommended_peers();
 
 -- 9)Определить процент пиров, которые:
