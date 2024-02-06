@@ -137,7 +137,29 @@ INSERT INTO TimeTracking VALUES
 (4, 'mike', '2022-04-01', '15:00', 1),
 (5, 'kate', '2022-05-01', '16:00', 2);
 
+CREATE OR REPLACE FUNCTION
+        update_transferredPoints()
+RETURNS trigger AS $$
+BEGIN
+    if NEW."State" ='Start' THEN
+        if (SELECT count(CheckingPeer) from TransferredPoints where CheckingPeer = NEW.CheckingPeer and CheckedPeer = (SELECT Peer FROM Checks WHERE id = NEW."Check")) <1
+        THEN
+            INSERT INTO TransferredPoints
+            VALUES(COALESCE((select max(id)+1 from transferredpoints),1), NEW.CheckingPeer, (SELECT Peer FROM Checks WHERE id = NEW."Check"), 1);
+        ELSE UPDATE TransferredPoints SET PointsAmount =
+            PointsAmount + 1 WHERE CheckingPeer =
+            NEW.CheckingPeer and CheckedPeer =
+            (SELECT Peer FROM Checks WHERE id = NEW."Check");
+        END IF;
+    END IF;
+RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
 
+CREATE TRIGGER p2p_trigger
+AFTER INSERT ON P2P
+FOR EACH ROW
+EXECUTE FUNCTION update_transferredPoints();
 
 
 -------------------------------------------
@@ -195,6 +217,7 @@ CALL  list_of_functions(' ',0);
 -- которая уничтожает все SQL DML триггеры в текущей базе 
 -- данных. Выходной параметр возвращает количество уничтоженных триггеров.
 
+
 CREATE OR REPLACE PROCEDURE proc_delete_triggers( count_triggers OUT int)
 AS $$
 DECLARE
@@ -202,25 +225,24 @@ DECLARE
 	table_name name;
 BEGIN
 
-    SELECT count(tgname) into count_triggers
+    SELECT count(*) into count_triggers
     FROM pg_trigger
     WHERE tgenabled = 'O' AND tgconstraint = 0;
 
-
-    FOR tgname, table_name IN (SELECT tgname, tgrelid::regclass AS table_name
+    FOR tgname, table_name IN (SELECT pg_trigger.tgname, pg_trigger.tgrelid::regclass AS table_name
         FROM pg_trigger
         JOIN pg_class ON pg_trigger.tgrelid = pg_class.oid
         WHERE tgenabled = 'O' AND tgconstraint = 0)
     LOOP
-            
+
             EXECUTE 'DROP TRIGGER ' ||tgname  || ' ON ' || table_name ;
         END LOOP;
-
 
 RETURN;
 END;
 $$ LANGUAGE plpgsql;
 
+CALL proc_delete_triggers(0);
 -- опять же надо почекать 
 
 -- 4)Создать хранимую процедуру с входным параметром, 
@@ -229,25 +251,24 @@ $$ LANGUAGE plpgsql;
 -- в тексте которых на языке SQL встречается строка, 
 -- задаваемая параметром процедуры.
 
-CREATE OR REPLACE PROCEDURE proc_search_proc_string(n VARCHAR, r REFCURSOR DEFAULT 'ref') 
+CREATE OR REPLACE PROCEDURE proc_search_proc_string(n VARCHAR)
 AS $$
+    DECLARE
+        obj_name varchar;
+        obj_descr varchar;
 
 BEGIN
-    OPEN r FOR
-		SELECT proname AS Name, proargnames, CASE prokind
-								WHEN 'p' THEN 'procedure' 
-								WHEN 'f' THEN 'function'
-								ELSE NULL
-								END AS type
-		 FROM pg_proc pr
-		 
-         JOIN pg_namespace ns ON ns.oid = pr.pronamespace
-		WHERE  nspname != 'pg_catalog' 
-		      AND nspname != 'information_schema'
-              AND proname ILIKE '%' || n || '%';
+    FOR obj_name, obj_descr IN (
+        SELECT proname, obj_description(oid, 'pg_proc')
+        FROM pg_proc
+        WHERE proname ILIKE '%' || n || '%'
+    )
+    LOOP
+        RAISE NOTICE 'Object Name: %, Description: %', obj_name, obj_descr;
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
 
 CALL proc_search_proc_string('delete');
-FETCH ALL FROM "ref";
+
