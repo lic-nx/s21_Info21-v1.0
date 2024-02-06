@@ -194,13 +194,13 @@ as $$
 BEGIN
     WITH table_funct_pasram as (
         SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as result
-        FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
+        FROM pg_proc p JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
         where (ns.nspname = 'public' or ns.nspname = 'privat') and p.proargtypes <> ''
  )
     select result into list_of_functions_and_params from table_funct_pasram;
     WITH table_funct_pasram as (
         SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as result
-        FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
+        FROM pg_proc p JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
         where (ns.nspname = 'public' or ns.nspname = 'privat') and p.proargtypes <> ''
  )
  SELECT count(*) into quantity from table_funct_pasram;
